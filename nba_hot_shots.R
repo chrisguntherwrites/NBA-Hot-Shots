@@ -7,7 +7,7 @@ all_shooting_splits <- nba_leaguedashplayerptshot(
   season = "2024-25",
   season_type = "Regular Season"
 )
-all_shooting_splits <- all_shooting_splits$LeagueDashPTShots
+all_shooting_splits <- all_shooting_splits$LeagueDashPlayerPTShot
 
 # Extract relevant columns 
 hot_shots_df <- all_shooting_splits %>% select(
