@@ -1,71 +1,33 @@
-library(httr)
-library(jsonlite)
 library(dplyr)
+library(hoopR)
 
-# NBA Stats API endpoint
-url <- "https://stats.nba.com/stats/leaguedashplayerptshot"
+# Load the data for the 2024-25 NBA regular season shooting stats
 
-# Query parameters
-params <- list(
-  Season = "2024-25",
-  SeasonType = "Regular Season",
-  DistanceRange = "16ft - 3pt",
-  LeagueID = "00",
-  MeasureType = "By Shooting Distance",
-  PerMode = "Totals",
-  PlayerExperience = "",
-  PlayerPosition = "",
-  PlusMinus = "N",
-  Rank = "N",
-  Outcome = "",
-  PORound = "",
-  Location = "",
-  Month = "0",
-  OpponentTeamID = "0",
-  GameSegment = "",
-  DateFrom = "",
-  DateTo = "",
-  TeamID = "0",
-  VsConference = "",
-  VsDivision = "",
-  Division = "",
-  Conference = ""
-)
+## Get player IDs and names
+nba_ids <- nba_commonallplayers(league_id = '00', season = year_to_season(most_recent_nba_season() - 1))
+nba_ids <- nba_ids$CommonAllPlayers
+nba_ids <- nba_ids %>% select(PERSON_ID, DISPLAY_FIRST_LAST)
 
-# Headers to mimic browser requests
-headers <- c(
-  "Host" = "stats.nba.com",
-  "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-  "Accept" = "application/json, text/plain, */*",
-  "Accept-Language" = "en-US,en;q=0.9",
-  "Referer" = "https://www.nba.com/stats/players/shooting?DistanceRange=By+Zone&SeasonType=Regular+Season",
-  "Origin" = "https://www.nba.com",
-  "Connection" = "keep-alive",
-  "x-nba-stats-origin" = "stats",
-  "x-nba-stats-token" = "true"
-)
+all_shooting_splits <- nba_leaguedashplayerptshot(
+  league_id = '00', 
+  season = year_to_season(most_recent_nba_season() - 1)
+)$LeagueDashPTShots
 
-# Fetch NBA 3-point stats function
-fetch_nba_3pt_stats <- function() {
-  response <- GET(url, query = params, add_headers(.headers = headers))
-  stop_for_status(response)
-  content_json <- content(response, "text", encoding = "UTF-8")
-  content_data <- fromJSON(content_json, flatten = TRUE)
-  headers_table <- content_data$resultSets[[2]][[1]]
-  rows <- content_data$resultSets[[3]]
-  df <- as.data.frame(do.call(rbind, rows), stringsAsFactors = FALSE)
-  colnames(df) <- headers_table
-  return(df)
-}
+# Extract relevant columns 
+hot_shots_df <- all_shooting_splits %>% select(
+  PLAYER_NAME, 
+  PLAYER_LAST_TEAM_ABBREVIATION, 
+  G, 
+  FG3A_FREQUENCY, 
+  FG3M, 
+  FG3_PCT)
 
-df <- fetch_nba_3pt_stats()
+# Add today's date
+today_str <- format(Sys.Date(), "%Y-%m-%d")
+hot_shots_df <- hot_shots_df %>% mutate(date = today)
 
-# Add today's date as a column
-today = Sys.Date()
-df <- df %>% mutate(date = today)
-
-# Save as CSV
-today_str <- format(today, "%Y-%m-%d")
+# Save to CSV
 filename <- paste0("nba_hot_shots_", today_str, ".csv")
-write.csv(df, filename, row.names = FALSE)
-cat("Saved NBA 3-point shooting stats to", filename, "\n")
+write.csv(hot_shots_df, filename, row.names = FALSE)
+
+cat("Saved NBA player shooting stats to", filename, "\n")
