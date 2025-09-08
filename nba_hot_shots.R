@@ -1,17 +1,13 @@
 library(dplyr)
 library(hoopR)
 
-# Load the data for the 2024-25 NBA regular season shooting stats
-
-## Get player IDs and names
-nba_ids <- nba_commonallplayers(league_id = '00', season = year_to_season(most_recent_nba_season() - 1))
-nba_ids <- nba_ids$CommonAllPlayers
-nba_ids <- nba_ids %>% select(PERSON_ID, DISPLAY_FIRST_LAST)
-
+# Get shooting stats
 all_shooting_splits <- nba_leaguedashplayerptshot(
   league_id = '00', 
-  season = year_to_season(most_recent_nba_season() - 1)
-)$LeagueDashPTShots
+  season = "2024-25",
+  season_type = "Regular Season"
+)
+all_shooting_splits <- all_shooting_splits$LeagueDashPTShots
 
 # Extract relevant columns 
 hot_shots_df <- all_shooting_splits %>% select(
@@ -23,6 +19,7 @@ hot_shots_df <- all_shooting_splits %>% select(
   FG3_PCT)
 
 # Add today's date
+today = Sys.Date()
 today_str <- format(Sys.Date(), "%Y-%m-%d")
 hot_shots_df <- hot_shots_df %>% mutate(date = today)
 
