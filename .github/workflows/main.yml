@@ -3,7 +3,7 @@ name: Get NBA Hot Shots Data
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 8 * * *'
+    - cron: '00 14 * * *'
 
 jobs:
   Get-NBA-Hot-Shots-Data:
@@ -33,7 +33,7 @@ jobs:
       - name: Install CRAN packages
         uses: r-lib/actions/setup-r-dependencies@v2
         with: 
-          packages: jsonlite, dplyr
+          packages: httr, jsonlite, dplyr
           
       - name: Run R update script
         run: Rscript nba_hot_shots.R
@@ -43,8 +43,8 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add data/mvp_odds*.csv
-          git diff --cached --quiet || git commit -m "Auto-update: mvp odds"
+          git add data/nba_hot_shots*.csv
+          git diff --cached --quiet || git commit -m "Auto-update: nba hot shots"
         shell: bash
 
       - name: Push changes
