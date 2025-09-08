@@ -33,7 +33,7 @@ jobs:
       - name: Install CRAN packages
         uses: r-lib/actions/setup-r-dependencies@v2
         with: 
-          packages: httr, jsonlite, dplyr
+          packages: hoopR, dplyr
           
       - name: Run R update script
         run: Rscript nba_hot_shots.R
